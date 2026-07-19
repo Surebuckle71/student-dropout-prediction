@@ -2,10 +2,26 @@
 *.csv
 *.xlsx
 
+# Trained model artifacts (regenerate locally via `python -m dropout_prediction.train`)
+models/
+*.pkl
+*.joblib
+
 # Python
 __pycache__/
 *.pyc
 .ipynb_checkpoints/
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Test / lint
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
 # OS
 .DS_Store
