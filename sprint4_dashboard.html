@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dropout Prediction Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 10px 0;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 1em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 20px;
+        }
+        
+        .predictor-form {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-group label {
+            color: #333;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+        
+        .form-group input, .form-group select {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border 0.3s;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: transform 0.3s;
+            margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .prediction-result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            display: none;
+        }
+        
+        .prediction-high-risk {
+            background: #fee;
+            color: #c00;
+            border: 2px solid #fcc;
+        }
+        
+        .prediction-low-risk {
+            background: #efe;
+            color: #0a0;
+            border: 2px solid #cfc;
+        }
+        
+        .feature-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .feature-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .feature-name {
+            flex: 1;
+            color: #333;
+        }
+        
+        .feature-bar {
+            flex: 0 0 200px;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0 10px;
+        }
+        
+        .feature-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.5s;
+        }
+        
+        .feature-value {
+            flex: 0 0 60px;
+            text-align: right;
+            color: #667eea;
+            font-weight: bold;
+        }
+        
+        .tab-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .roi-calculator {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .roi-result {
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .roi-result h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .roi-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .roi-item:last-child {
+            border-bottom: none;
+            font-weight: bold;
+            font-size: 1.2em;
+            color: #667eea;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🎓 Student Dropout Prediction Dashboard</h1>
+            <p>ML-Powered Early Intervention System | Best Model: Logistic Regression (SMOTE) | F1: 87.6% | ROC-AUC: 96.2%</p>
+        </div>
+        
+        <!-- Key Statistics -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-label">Test F1 Score</div>
+                <div class="stat-value">87.6%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">ROC-AUC</div>
+                <div class="stat-value">96.2%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Recall Rate</div>
+                <div class="stat-value">90%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Precision</div>
+                <div class="stat-value">86%</div>
+            </div>
+        </div>
+        
+        <!-- Main Dashboard -->
+        <div class="dashboard-grid">
+            <!-- Model Performance -->
+            <div class="card">
+                <h2>📊 Model Performance Comparison</h2>
+                <div class="chart-container">
+                    <canvas id="performanceChart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Confusion Matrix -->
+            <div class="card">
+                <h2>🎯 Confusion Matrix (Test Set)</h2>
+                <div class="chart-container">
+                    <canvas id="confusionChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Feature Importance & Predictor -->
+        <div class="dashboard-grid">
+            <!-- Feature Importance -->
+            <div class="card">
+                <h2>🔍 Top Feature Importance</h2>
+                <div class="feature-list" id="featureList"></div>
+            </div>
+            
+            <!-- Student Risk Predictor -->
+            <div class="card">
+                <h2>🎯 Student Risk Predictor</h2>
+                <form class="predictor-form" id="predictorForm">
+                    <div class="form-group">
+                        <label>First Semester Approved Credits</label>
+                        <input type="number" id="firstSemApproved" min="0" max="10" value="6" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Second Semester Grade (0-20)</label>
+                        <input type="number" id="secondSemGrade" min="0" max="20" step="0.1" value="12" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Tuition Fees Up to Date</label>
+                        <select id="tuitionStatus" required>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Scholarship Holder</label>
+                        <select id="scholarship" required>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Age at Enrollment</label>
+                        <input type="number" id="age" min="17" max="60" value="20" required>
+                    </div>
+                    <button type="submit" class="btn">Predict Dropout Risk</button>
+                </form>
+                <div class="prediction-result" id="predictionResult"></div>
+            </div>
+        </div>
+        
+        <!-- ROI Calculator -->
+        <div class="card">
+            <h2>💰 Business Impact & ROI Calculator</h2>
+            <div class="tab-container">
+                <button class="tab active" onclick="switchTab('impact')">Business Impact</button>
+                <button class="tab" onclick="switchTab('calculator')">ROI Calculator</button>
+            </div>
+            
+            <div class="tab-content active" id="impact">
+                <div class="chart-container">
+                    <canvas id="impactChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="tab-content" id="calculator">
+                <div class="roi-calculator">
+                    <div class="form-group">
+                        <label>Total Students per Cohort</label>
+                        <input type="number" id="totalStudents" value="300" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Expected Dropout Rate (%)</label>
+                        <input type="number" id="dropoutRate" value="33" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Average Tuition per Student ($)</label>
+                        <input type="number" id="tuition" value="5000" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Cost of Intervention per Student ($)</label>
+                        <input type="number" id="interventionCost" value="500" min="0">
+                    </div>
+                    <button class="btn" onclick="calculateROI()">Calculate ROI</button>
+                </div>
+                <div class="roi-result" id="roiResult" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Feature importance data
+        const features = [
+            {name: "1st Sem Approved Credits", value: 3.25},
+            {name: "Course 16", value: 2.40},
+            {name: "Tuition Fees Status", value: 2.18},
+            {name: "Course 7", value: 1.61},
+            {name: "2nd Sem Grade", value: 1.60},
+            {name: "Debtor Status", value: 1.57},
+            {name: "Mother's Qualification", value: 1.53},
+            {name: "Father's Qualification", value: 1.41},
+            {name: "Course 17", value: 1.35},
+            {name: "Father's Occupation", value: 1.31}
+        ];
+        
+        // Normalize feature values for display
+        const maxValue = Math.max(...features.map(f => f.value));
+        
+        // Render feature list
+        const featureList = document.getElementById('featureList');
+        features.forEach(feature => {
+            const percentage = (feature.value / maxValue * 100).toFixed(1);
+            featureList.innerHTML += `
+                <div class="feature-item">
+                    <div class="feature-name">${feature.name}</div>
+                    <div class="feature-bar">
+                        <div class="feature-bar-fill" style="width: ${percentage}%"></div>
+                    </div>
+                    <div class="feature-value">${feature.value.toFixed(2)}</div>
+                </div>
+            `;
+        });
+        
+        // Model Performance Chart
+        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
+        new Chart(performanceCtx, {
+            type: 'bar',
+            data: {
+                labels: ['LR_SMOTE', 'LR_Weighted', 'GB_SMOTE', 'GB_Weighted', 'RF_SMOTE'],
+                datasets: [{
+                    label: 'F1 Score',
+                    data: [0.876, 0.857, 0.850, 0.841, 0.837],
+                    backgroundColor: 'rgba(102, 126, 234, 0.8)',
+                    borderColor: 'rgba(102, 126, 234, 1)',
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {display: false}
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 1,
+                        ticks: {
+                            callback: function(value) {
+                                return (value * 100).toFixed(0) + '%';
+                            }
+                        }
+                    }
+                }
+            }
+        });
+        
+        // Confusion Matrix Chart
+        const confusionCtx = document.getElementById('confusionChart').getContext('2d');
+        new Chart(confusionCtx, {
+            type: 'bar',
+            data: {
+                labels: ['True Graduates', 'False Positives', 'False Negatives', 'True Dropouts'],
+                datasets: [{
+                    label: 'Count',
+                    data: [399, 43, 29, 255],
+                    backgroundColor: [
+                        'rgba(75, 192, 192, 0.8)',
+                        'rgba(255, 159, 64, 0.8)',
+                        'rgba(255, 99, 132, 0.8)',
+                        'rgba(54, 162, 235, 0.8)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {display: false}
+                }
+            }
+        });
+        
+        // Business Impact Chart
+        const impactCtx = document.getElementById('impactChart').getContext('2d');
+        new Chart(impactCtx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Correctly Identified (90%)', 'Missed (10%)'],
+                datasets: [{
+                    data: [255, 29],
+                    backgroundColor: [
+                        'rgba(102, 126, 234, 0.8)',
+                        'rgba(255, 99, 132, 0.8)'
+                    ],
+                    borderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Dropout Detection Rate (Test Set)',
+                        font: {size: 16}
+                    }
+                }
+            }
+        });
+        
+        // Student Risk Predictor
+        document.getElementById('predictorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const firstSem = parseFloat(document.getElementById('firstSemApproved').value);
+            const secondSemGrade = parseFloat(document.getElementById('secondSemGrade').value);
+            const tuition = document.getElementById('tuitionStatus').value;
+            const scholarship = document.getElementById('scholarship').value;
+            const age = parseFloat(document.getElementById('age').value);
+            
+            // Simple risk calculation (weighted features)
+            let riskScore = 0;
+            
+            // First semester performance (most important)
+            riskScore += (10 - firstSem) * 3.25;
+            
+            // Second semester grade
+            riskScore += (20 - secondSemGrade) * 0.8;
+            
+            // Financial factors
+            if (tuition === 'no') riskScore += 2.18;
+            if (scholarship === 'no') riskScore += 1.5;
+            
+            // Age factor
+            if (age > 25) riskScore += 1.0;
+            
+            const resultDiv = document.getElementById('predictionResult');
+            resultDiv.style.display = 'block';
+            
+            if (riskScore > 15) {
+                resultDiv.className = 'prediction-result prediction-high-risk';
+                resultDiv.innerHTML = `
+                    ⚠️ HIGH RISK OF DROPOUT<br>
+                    <span style="font-size: 0.9em;">Risk Score: ${riskScore.toFixed(1)}/50</span><br>
+                    <span style="font-size: 0.8em; font-weight: normal;">
+                    Recommendation: Immediate intervention required. Consider academic support, financial aid counseling, and mentorship programs.
+                    </span>
+                `;
+            } else {
+                resultDiv.className = 'prediction-result prediction-low-risk';
+                resultDiv.innerHTML = `
+                    ✅ LOW RISK OF DROPOUT<br>
+                    <span style="font-size: 0.9em;">Risk Score: ${riskScore.toFixed(1)}/50</span><br>
+                    <span style="font-size: 0.8em; font-weight: normal;">
+                    Student shows positive indicators. Continue monitoring academic progress.
+                    </span>
+                `;
+            }
+        });
+        
+        // Tab switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+        
+        // ROI Calculator
+        function calculateROI() {
+            const totalStudents = parseFloat(document.getElementById('totalStudents').value);
+            const dropoutRate = parseFloat(document.getElementById('dropoutRate').value) / 100;
+            const tuition = parseFloat(document.getElementById('tuition').value);
+            const interventionCost = parseFloat(document.getElementById('interventionCost').value);
+            
+            const expectedDropouts = Math.round(totalStudents * dropoutRate);
+            const studentsIdentified = Math.round(expectedDropouts * 0.90); // 90% recall
+            const falsePositives = Math.round((totalStudents - expectedDropouts) * 0.10); // 10% FP rate
+            
+            const totalInterventionCost = (studentsIdentified + falsePositives) * interventionCost;
+            const potentialSavings = studentsIdentified * tuition;
+            const netBenefit = potentialSavings - totalInterventionCost;
+            const roi = ((netBenefit / totalInterventionCost) * 100).toFixed(1);
+            
+            const resultDiv = document.getElementById('roiResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `
+                <h3>💰 ROI Analysis Results</h3>
+                <div class="roi-item">
+                    <span>Total Students:</span>
+                    <span>${totalStudents}</span>
+                </div>
+                <div class="roi-item">
+                    <span>Expected Dropouts:</span>
+                    <span>${expectedDropouts}</span>
+                </div>
+                <div class="roi-item">
+                    <span>Students Identified (90% recall):</span>
+                    <span>${studentsIdentified}</span>
+                </div>
+                <div class="roi-item">
+                    <span>False Positives:</span>
+                    <span>${falsePositives}</span>
+                </div>
+                <div class="roi-item">
+                    <span>Total Intervention Cost:</span>
+                    <span>$${totalInterventionCost.toLocaleString()}</span>
+                </div>
+                <div class="roi-item">
+                    <span>Potential Revenue Saved:</span>
+                    <span>$${potentialSavings.toLocaleString()}</span>
+                </div>
+                <div class="roi-item">
+                    <span>Net Benefit:</span>
+                    <span style="color: ${netBenefit > 0 ? '#0a0' : '#c00'}">$${netBenefit.toLocaleString()}</span>
+                </div>
+                <div class="roi-item">
+                    <span>Return on Investment (ROI):</span>
+                    <span>${roi}%</span>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
