@@ -3,9 +3,9 @@
 [![CI](https://github.com/Surebuckle71/student-dropout-prediction/actions/workflows/ci.yml/badge.svg)](https://github.com/Surebuckle71/student-dropout-prediction/actions/workflows/ci.yml)
 
 M.Sc. Data Science capstone (University of Europe for Applied Sciences) predicting early
-student dropout risk. Compares 10 classifiers across two class-imbalance handling
-strategies (class-weighting vs. SMOTE), and ships as an installable package with a test
-suite, CI, and a FastAPI inference endpoint — not just a notebook.
+student dropout risk. It compares 10 classifiers across two class-imbalance strategies,
+class-weighting and SMOTE, and ships as an installable Python package: a test suite, CI,
+and a FastAPI endpoint for serving predictions, not just a notebook.
 
 ## Results
 
@@ -25,17 +25,17 @@ Re-running `dropout_prediction.train` now sweeps all 10 models and will produce 
 
 ## Dataset
 
-[Predict Students' Dropout and Academic Success](https://archive.ics.uci.edu/dataset/697/predict+students+dropout+and+academic+success)
-— UCI Machine Learning Repository, Realinho et al., Polytechnic Institute of Portalegre,
-Portugal. 4,424 student records, 35 features covering demographics, semester-by-semester
-academic metrics, and financial indicators.
+[Predict Students' Dropout and Academic Success](https://archive.ics.uci.edu/dataset/697/predict+students+dropout+and+academic+success),
+from the UCI Machine Learning Repository (Realinho et al., Polytechnic Institute of
+Portalegre, Portugal). 4,424 student records, 35 features covering demographics,
+semester-by-semester academic metrics, and financial indicators.
 
-The dataset isn't included in this repo — download it from the link above and save it as
+The dataset isn't included in this repo. Download it from the link above and save it as
 `dataset.csv` in the project root before training.
 
-**Note:** the 35 raw column names vary slightly by download; `dropout_prediction.features`
-auto-detects categorical columns by dtype/cardinality rather than hardcoding the schema, but
-it's worth sanity-checking `infer_categorical_columns()`'s output against your actual file.
+The 35 raw column names vary a bit by download, so `dropout_prediction.features`
+auto-detects categorical columns by dtype and cardinality instead of hardcoding the schema.
+Check `infer_categorical_columns()`'s output against your actual file before trusting it.
 
 ## Project layout
 
@@ -83,14 +83,18 @@ curl -X POST localhost:8000/predict \
 pytest
 ```
 
-The test suite doesn't depend on the real (ungitted) dataset — `tests/conftest.py`
-generates a small synthetic dataset matching the UCI schema so every stage of the pipeline,
-plus the API, can be exercised in CI.
+The test suite doesn't touch the real dataset, since that's not checked into the repo.
+`tests/conftest.py` generates a small synthetic dataset matching the UCI schema, so every
+stage of the pipeline, plus the API, runs fine in CI without it.
 
 ## Original notebook
 
-`notebooks/Sprint1-3.ipynb` is the original sprint-by-sprint exploration (data cleaning,
-preprocessing, model training) this package was refactored from; `notebooks/dropout_eda.py`
-is the standalone EDA script; `notebooks/sprint4_dashboard.html` is a static mockup dashboard
-whose "prediction" was a hardcoded JS heuristic — superseded by the real `/predict` endpoint
-above. Kept for provenance — the package under `src/` is the maintained version.
+`notebooks/` holds what this package was refactored from:
+
+- `Sprint1-3.ipynb` — the original sprint-by-sprint exploration: data cleaning,
+  preprocessing, model training
+- `dropout_eda.py` — the standalone EDA script
+- `sprint4_dashboard.html` — a static mockup dashboard whose "prediction" was a hardcoded
+  JS heuristic, now replaced by the real `/predict` endpoint above
+
+Kept for provenance. `src/` is the version that's actually maintained.
