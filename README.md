@@ -91,10 +91,10 @@ stage of the pipeline, plus the API, runs fine in CI without it.
 
 `notebooks/` holds what this package was refactored from:
 
-- `Sprint1-3.ipynb` — the original sprint-by-sprint exploration: data cleaning,
+- `Sprint1-3.ipynb`: the original sprint-by-sprint exploration: data cleaning,
   preprocessing, model training
-- `dropout_eda.py` — the standalone EDA script
-- `sprint4_dashboard.html` — a static mockup dashboard whose "prediction" was a hardcoded
+- `dropout_eda.py`: the standalone EDA script
+- `sprint4_dashboard.html`: a static mockup dashboard whose "prediction" was a hardcoded
   JS heuristic, now replaced by the real `/predict` endpoint above
 
 Kept for provenance. `src/` is the version that's actually maintained.
